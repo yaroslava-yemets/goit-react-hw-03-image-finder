@@ -4,7 +4,7 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import ImageGalleryItem from '../ImageGalleryItem';
 import Loader from '../../components/Loader';
-import Button from '../../Button/Button';
+import Button from '../Button';
 import './ImageGallery.css';
 
 
