@@ -1,0 +1,93 @@
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import ImageGalleryItem from '../ImageGalleryItem';
+import Loader from '../../components/Loader';
+import Button from '../../Button/Button';
+import './ImageGallery.css';
+
+
+class ImageGallery extends Component {
+  static propTypes = {
+    query: PropTypes.string,
+  };
+
+  state = {
+    pictures: [],
+    error: null,
+    page: 1,
+    status: 'idle',
+  };
+
+  componentDidUpdate(prevProps, prevState) {
+      if(prevProps.query !== this.props.query || prevState.page !== this.state.page) {
+          if(prevProps.query !== this.props.query) {
+            this.setState({status: 'pending', pictures: [], page: 1});
+          } else if (prevState.page !== this.state.page) {
+            this.setState({loading: true});
+          };
+
+        fetch(`https://pixabay.com/api/?q=${this.props.query}&page=${this.state.page}&key=22334944-1a4c27752b28577a34c92f730&image_type=photo&orientation=horizontal&per_page=12`)
+        .then(response => {
+            if(response.ok) {
+                return response.json()
+            }
+            return Promise.reject(new Error(`There are no pictures with ${this.props.query}`));
+        })
+        .then(pictures => {
+            const picturesArray = pictures.hits;
+            this.setState((prevState) => ({pictures: [...prevState.pictures, ...picturesArray], status: 'resolved'}));
+            window.scrollTo({
+                top: document.documentElement.scrollHeight,
+                behavior: 'smooth',
+            });
+        })
+        .catch(error => this.setState({error, status: 'rejected'}));
+      };
+  };
+
+
+  handleLoadMore = () => {
+      this.setState((prevState) =>{
+          return {page: prevState.page + 1}
+      })
+  }
+
+  handleGetLength = () => {
+      this.props.getLength(this.state.pictures.length)
+  };
+
+  render() {
+      const {status, pictures, error} = this.state;
+
+      if(status === 'idle') {
+          return <div className="Warning">Write down the word to start searching for pictures</div>
+      }
+
+      if(status === 'pending') {
+          return <Loader />
+      }
+
+      if(status === 'rejected') {
+        return toast.error(error.message)
+      }
+
+      if(status === 'resolved') {
+        return (
+            <>
+            <ul className="ImageGallery">
+                <ImageGalleryItem pictures={pictures} />
+            </ul>
+
+            {pictures.length > 0 
+                ? <Button onClick={this.handleLoadMore} /> 
+                : <div className="Warning">You have to write down right word for search</div>}
+            </>
+        )
+      }
+
+  }
+};
+
+export default ImageGallery;
