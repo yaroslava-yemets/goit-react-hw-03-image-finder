@@ -13,20 +13,33 @@ class App extends Component {
 
   state = {
     pictureQuery: '',
+    showModal: false,
+    modalPicture: '',
   };
 
   handleFormSubmit = (pictureQuery) => {
     this.setState({pictureQuery});
   };
 
+  openModal = (modalPicture) => {
+    this.setState({
+      showModal: true,
+      modalPicture,
+    })
+  } 
+
+  closeModal = () => {
+    this.setState({showModal: false})
+  };
+
   render() {
-    const { pictureQuery } = this.state;
+    const { pictureQuery, showModal, modalPicture } = this.state;
 
     return (
       <div>
         <Searchbar onSubmit={this.handleFormSubmit} />
-        <ImageGallery query={pictureQuery} />
-        {/* <Modal /> */}
+        <ImageGallery query={pictureQuery} onClick={this.openModal}/>
+        {showModal && <Modal modalPicture={modalPicture} onClose={this.closeModal}/>}
         <ToastContainer position="top-center" autoClose={2000}/>
       </div>
     )

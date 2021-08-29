@@ -11,6 +11,7 @@ import './ImageGallery.css';
 class ImageGallery extends Component {
   static propTypes = {
     query: PropTypes.string,
+    openModal: PropTypes.func,
   };
 
   state = {
@@ -54,10 +55,6 @@ class ImageGallery extends Component {
       })
   }
 
-  handleGetLength = () => {
-      this.props.getLength(this.state.pictures.length)
-  };
-
   render() {
       const {status, pictures, error} = this.state;
 
@@ -77,7 +74,7 @@ class ImageGallery extends Component {
         return (
             <>
             <ul className="ImageGallery">
-                <ImageGalleryItem pictures={pictures} />
+                <ImageGalleryItem pictures={pictures} onClick={this.props.onClick}/>
             </ul>
 
             {pictures.length > 0 
