@@ -5,6 +5,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import ImageGalleryItem from '../ImageGalleryItem';
 import Loader from '../../components/Loader';
 import Button from '../Button';
+import picturesApi from '../../services/picturesApi';
 import './ImageGallery.css';
 
 
@@ -29,13 +30,7 @@ class ImageGallery extends Component {
             this.setState({loading: true});
           };
 
-        fetch(`https://pixabay.com/api/?q=${this.props.query}&page=${this.state.page}&key=22334944-1a4c27752b28577a34c92f730&image_type=photo&orientation=horizontal&per_page=12`)
-        .then(response => {
-            if(response.ok) {
-                return response.json()
-            }
-            return Promise.reject(new Error(`There are no pictures with ${this.props.query}`));
-        })
+        picturesApi(this.props.query, this.state.page)
         .then(pictures => {
             const picturesArray = pictures.hits;
             this.setState((prevState) => ({pictures: [...prevState.pictures, ...picturesArray], status: 'resolved'}));
