@@ -24,10 +24,9 @@ class ImageGallery extends Component {
 
   componentDidUpdate(prevProps, prevState) {
       if(prevProps.query !== this.props.query || prevState.page !== this.state.page) {
+        this.setState({status: 'pending'});
           if(prevProps.query !== this.props.query) {
-            this.setState({status: 'pending', pictures: [], page: 1});
-          } else if (prevState.page !== this.state.page) {
-            this.setState({status: 'pending'});
+            this.setState({pictures: [], page: 1});
           };
 
         picturesApi(this.props.query, this.state.page)
