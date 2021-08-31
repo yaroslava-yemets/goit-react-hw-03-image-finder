@@ -22,32 +22,48 @@ class ImageGallery extends Component {
     status: 'idle',
   };
 
-  componentDidUpdate(prevProps, prevState) {
-      if(prevProps.query !== this.props.query || prevState.page !== this.state.page) {
-        this.setState({status: 'pending'});
-          if(prevProps.query !== this.props.query) {
-            this.setState({pictures: [], page: 1});
-          };
-
-        picturesApi(this.props.query, this.state.page)
-        .then(pictures => {
-            const picturesArray = pictures.hits;
-            this.setState((prevState) => ({pictures: [...prevState.pictures, ...picturesArray], status: 'resolved'}));
-            window.scrollTo({
-                top: document.documentElement.scrollHeight,
-                behavior: 'smooth',
-            });
-        })
-        .catch(error => this.setState({error, status: 'rejected'}));
-      };
+  async componentDidUpdate(prevProps, prevState) {
+      if(prevProps.query !== this.props.query) {
+        this.setState({status: 'pending', pictures: [], page: 1});
+        await this.getPicturesAfterNewSearch();
+        this.autoScroll();
+      }
+      if(prevState.page !== this.state.page && this.state.page > 1) {
+        this.setState({status: 'pending-ready'});
+        await this.getPicturesFromNextPage();
+        this.autoScroll();
+      }
+  };
+  
+  getPicturesAfterNewSearch = async () => {
+     await picturesApi(this.props.query, this.state.page)
+      .then(pictures => {
+        this.setState({pictures: pictures.hits, status: 'resolved'});
+      })
+      .catch(error => this.setState({error, status: 'rejected'}));
   };
 
+  getPicturesFromNextPage = async () => {
+    await picturesApi(this.props.query, this.state.page)
+      .then(pictures => {
+          const picturesArray = pictures.hits;
+          this.setState((prevState) => ({pictures: [...prevState.pictures, ...picturesArray], status: 'resolved'}));
+      })
+      .catch(error => this.setState({error, status: 'rejected'}));
+  };
+
+  autoScroll = () => {
+    window.scrollTo({
+      top: document.documentElement.scrollHeight,
+      behavior: 'smooth',
+    });
+  };
 
   handleLoadMore = () => {
       this.setState((prevState) =>{
           return {page: prevState.page + 1}
       })
-  }
+  };
 
   render() {
       const {status, pictures, error} = this.state;
@@ -58,6 +74,17 @@ class ImageGallery extends Component {
 
       if(status === 'pending') {
           return <Loader />
+      }
+
+      if(status === 'pending-ready') {
+        return (
+          <>
+            <ul className="ImageGallery">
+                <ImageGalleryItem pictures={pictures} onClick={this.props.onClick}/>
+            </ul>
+            <Loader />
+          </>
+        )
       }
 
       if(status === 'rejected') {
